@@ -49,7 +49,7 @@ func main() {
 		github.New("key", "value", "http://localhost:8080/auth/callback/github"),
 		google.New("", "", "http://localhost:8080/auth/callback/google"),
 	)
-	r := newRoom()
+	r := newRoom(UseAuthAvatar)
 	r.tracer = trace.New(os.Stdout)
 	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
 	http.Handle("/login", &templateHandler{filename: "login.html"})

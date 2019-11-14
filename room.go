@@ -30,6 +30,8 @@ type room struct {
 	// tracer will receive trace information of activity
 	// in the room.
 	tracer trace.Tracer
+	// avatar is how avatar information will be obtained.
+	avatar Avatar
 }
 
 // run in the background watching the three channels
@@ -79,13 +81,14 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	client.read() // block operations until it's time to close it
 }
 
-// newRoom makes a new room.
-func newRoom() *room {
+// newRoom makes a new room that is ready to go.
+func newRoom(avatar Avatar) *room {
 	return &room{
 		forward: make(chan *message),
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
 		tracer:  trace.Off(),
+		avatar:  avatar,
 	}
 }
