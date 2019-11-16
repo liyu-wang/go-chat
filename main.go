@@ -68,6 +68,7 @@ func main() {
 	})
 	http.Handle("/upload", &templateHandler{filename: "upload.html"})
 	http.HandleFunc("/uploader", uploadHanlder)
+	http.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("./avatars"))))
 	// get the room going
 	go r.run()
 	// start the web server
