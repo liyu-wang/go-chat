@@ -49,3 +49,19 @@ func (GravatarAvatar) GetAvatarURL(c *client) (string, error) {
 	}
 	return "", ErrNoAvatarURL
 }
+
+// FileSytemAvatar is a concrete class that implements Avatar
+type FileSytemAvatar struct{}
+
+// UseFileSystemAvatar nil variable
+var UseFileSystemAvatar FileSytemAvatar
+
+// GetAvatarURL implementation of FileSytemAvatar
+func (FileSytemAvatar) GetAvatarURL(c *client) (string, error) {
+	if userid, ok := c.userData["userid"]; ok {
+		if useridStr, ok := userid.(string); ok {
+			return "/avatars/" + useridStr + ".jpg", nil
+		}
+	}
+	return "", ErrNoAvatarURL
+}
