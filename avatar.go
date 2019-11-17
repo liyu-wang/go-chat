@@ -37,6 +37,19 @@ type Avatar interface {
 	GetAvatarURL(ChatUser) (string, error)
 }
 
+// TryAvatars is a slice of available Avatar implementations
+type TryAvatars []Avatar
+
+// GetAvatarURL try all the available implementations
+func (a TryAvatars) GetAvatarURL(u ChatUser) (string, error) {
+	for _, avatar := range a {
+		if url, err := avatar.GetAvatarURL(u); err == nil {
+			return url, nil
+		}
+	}
+	return "", ErrNoAvatarURL
+}
+
 // AuthAvatar is a concrete class that implements Avatar
 type AuthAvatar struct{}
 
