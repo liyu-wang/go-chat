@@ -34,7 +34,7 @@ type Avatar interface {
 	// or returns an error if something goes wrong.
 	// ErrNOAvatarURL is returned if the object is unable to get
 	// a URL for the specified client.
-	GetAvatarURL(c *client) (string, error)
+	GetAvatarURL(ChatUser) (string, error)
 }
 
 // AuthAvatar is a concrete class that implements Avatar
