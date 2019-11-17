@@ -18,6 +18,9 @@ import (
 	"trace"
 )
 
+// set the active Avatar implementation
+var avatars Avatar = UseFileSystemAvatar
+
 // templ represents a single template
 type templateHandler struct {
 	once     sync.Once
