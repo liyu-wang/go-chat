@@ -34,7 +34,7 @@
 				if (!window["WebSocket"]) {
 					alert("Your browser does not support WebSockets.");
 				} else {
-					socket = new WebSocket("ws://localhost:8080/room");
+					socket = new WebSocket("ws://{{.Host}}/room");
 					socket.onopen = function() {
 						console.log("Connected to chat server.");
 					};
