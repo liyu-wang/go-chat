@@ -23,3 +23,12 @@ func (t *tracker) Trace(a ...any) {
 func New(w io.Writer) Tracer {
 	return &tracker{out: w}
 }
+
+type nilTracer struct{}
+
+func (t *nilTracer) Trace(a ...any) {}
+
+// Off returns a Tracer that will ingore calls to Trace.
+func Off() Tracer {
+	return &nilTracer{}
+}
