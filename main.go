@@ -5,8 +5,11 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/liyu-wang/go-chat/internal/trace"
 )
 
 type templateHandler struct {
@@ -29,6 +32,7 @@ func main() {
 	flag.Parse()
 	// create a new room
 	r := newRoom()
+	r.tracer = trace.New(os.Stdout)
 	http.Handle("/", &templateHandler{filename: "chat.html"})
 	http.Handle("/room", r)
 	// Get the room running
