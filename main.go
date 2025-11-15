@@ -30,6 +30,7 @@ func main() {
 	// create a new room
 	r := newRoom()
 	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
+	http.Handle("/login", &templateHandler{filename: "login.html"})
 	http.Handle("/room", r)
 	// Get the room running
 	// this will start the room's main event loop in the background to handle clients
