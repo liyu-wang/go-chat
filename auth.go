@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
-	"strings"
+
+	"github.com/markbates/goth/gothic"
 )
 
 type authHandler struct {
@@ -35,18 +37,43 @@ func MustAuth(handler http.Handler) http.Handler {
 // loginHandler handles the third-party login process.
 // format: /auth/{action}/{provider}
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	segs := strings.Split(r.URL.Path, "/")
-	if len(segs) < 4 {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprint(w, "Path not found.")
-		return
-	}
-	action := segs[2]
-	provider := segs[3]
+	action := r.PathValue("action")
+	provider := r.PathValue("provider")
 
 	switch action {
 	case "login":
-		log.Println("TODO handle login for", provider)
+		// try to get the user without re-authenticating
+		// gothic.getProviderName automatically checks the provider path value
+		if gothUser, err := gothic.CompleteUserAuth(w, r); err == nil {
+			fmt.Fprintf(w, "User already logged in: %v", gothUser)
+			return
+		} else {
+			gothic.BeginAuthHandler(w, r)
+		}
+
+	case "callback":
+		user, err := gothic.CompleteUserAuth(w, r)
+		if err != nil {
+			fmt.Fprintf(w, "Error completing authentication: %s", err)
+			http.Error(w, fmt.Sprintf("Error when trying to complete auth from %s: %s", provider, err), http.StatusInternalServerError)
+			return
+		}
+
+		// create the auth cookie value
+		data := map[string]any{
+			"name": user.Name,
+		}
+		jsonBytes, _ := json.Marshal(data)
+		authCookieValue := base64.StdEncoding.EncodeToString(jsonBytes)
+		// set the auth cookie
+		http.SetCookie(w, &http.Cookie{
+			Name:  "auth",
+			Value: authCookieValue,
+			Path:  "/",
+		})
+		w.Header().Set("Location", "/chat")
+		w.WriteHeader(http.StatusTemporaryRedirect)
+
 	default:
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintf(w, "Auth action %s not supported", action)
