@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"flag"
 	"html/template"
 	"log"
@@ -14,6 +12,7 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
+	"github.com/stretchr/objx"
 )
 
 type templateHandler struct {
@@ -33,14 +32,7 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// If the user is authenticated, get the user data from the "auth" cookie
 	if authcookie, err := r.Cookie("auth"); err == nil {
-		// Decode from Base64
-		if decodedBytes, err := base64.StdEncoding.DecodeString(authcookie.Value); err == nil {
-			// Unmarshal JSON
-			var authData map[string]any
-			if err := json.Unmarshal(decodedBytes, &authData); err == nil {
-				data["UserData"] = authData
-			}
-		}
+		data["UserData"] = objx.MustFromBase64(authcookie.Value)
 	}
 
 	t.templ.Execute(w, data)

@@ -1,12 +1,11 @@
 package main
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/markbates/goth/gothic"
+	"github.com/stretchr/objx"
 )
 
 type authHandler struct {
@@ -60,11 +59,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// create the auth cookie value
-		data := map[string]any{
+		authCookieValue := objx.New(map[string]any{
 			"name": user.Name,
-		}
-		jsonBytes, _ := json.Marshal(data)
-		authCookieValue := base64.StdEncoding.EncodeToString(jsonBytes)
+		}).MustBase64()
 		// set the auth cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:  "auth",

@@ -12,5 +12,6 @@ require (
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gorilla/sessions v1.1.1 // indirect
 	github.com/markbates/goth v1.82.0 // indirect
+	github.com/stretchr/objx v0.5.3 // indirect
 	golang.org/x/oauth2 v0.27.0 // indirect
 )
