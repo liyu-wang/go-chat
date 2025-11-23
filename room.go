@@ -27,16 +27,19 @@ type room struct {
 	clients map[*client]bool
 	// tracer will receive trace information of activity in the room.
 	tracer trace.Tracer
+	// avatar is used to get user profile pictures.
+	avatar Avatar
 }
 
 // newRoom creates and returns a new room.
-func newRoom() *room {
+func newRoom(avatar Avatar) *room {
 	return &room{
 		forward: make(chan *message),
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
 		tracer:  trace.New(os.Stdout),
+		avatar:  avatar,
 	}
 }
 

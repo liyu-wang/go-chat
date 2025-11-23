@@ -48,7 +48,7 @@ func main() {
 	)
 
 	// create a new room
-	r := newRoom()
+	r := newRoom(UseGravatar)
 	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
 	http.Handle("/login", &templateHandler{filename: "login.html"})
 	http.HandleFunc("/auth/{action}/{provider}", loginHandler)

@@ -24,8 +24,7 @@ func (c *client) read() {
 	defer c.socket.Close()
 	for {
 		var msg *message
-		err := c.socket.ReadJSON(&msg)
-		if err != nil {
+		if err := c.socket.ReadJSON(&msg); err != nil {
 			return
 		}
 		msg.When = time.Now()
@@ -34,9 +33,7 @@ func (c *client) read() {
 			name = "unknown"
 		}
 		msg.Name = name
-		if avatarURL, ok := c.userData["avatar_url"].(string); ok {
-			msg.AvatarURL = avatarURL
-		}
+		msg.AvatarURL, _ = c.room.avatar.GetAvatarURL(c)
 		// Forward the message to the room
 		c.room.forward <- msg
 	}
