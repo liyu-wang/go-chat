@@ -65,6 +65,8 @@ func main() {
 		w.Header().Set("Location", "/login")
 		w.WriteHeader(http.StatusTemporaryRedirect)
 	})
+	http.Handle("/upload", MustAuth(&templateHandler{filename: "upload.html"}))
+	http.Handle("/uploader", MustAuth(http.HandlerFunc(uploaderHandler)))
 	// Get the room running
 	// this will start the room's main event loop in the background to handle clients
 	// joining, leaving and message forwarding, which allows the main goroutine to run the web server
