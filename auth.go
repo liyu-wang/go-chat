@@ -1,8 +1,11 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 
 	"github.com/markbates/goth/gothic"
 	"github.com/stretchr/objx"
@@ -57,8 +60,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		m := md5.New()
+		io.WriteString(m, strings.ToLower(strings.TrimSpace(user.Email)))
+		userId := fmt.Sprintf("%x", m.Sum(nil))
 		// create the auth cookie value
 		authCookieValue := objx.New(map[string]any{
+			"userid":     userId,
 			"name":       user.Name,
 			"avatar_url": user.AvatarURL,
 			"email":      user.Email,
