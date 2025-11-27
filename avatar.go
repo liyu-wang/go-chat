@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"os"
+	"path"
 )
 
 // ErrNoAvatarURL is returned when the Avatar instance is unable to provide
@@ -33,6 +35,28 @@ var UseGravatar GravatarAvatar
 func (GravatarAvatar) GetAvatarURL(c *client) (string, error) {
 	if userid, ok := c.userData["userid"].(string); ok {
 		return "//www.gravatar.com/avatar/" + userid, nil
+	}
+	return "", ErrNoAvatarURL
+}
+
+type FileSystemAvatar struct{}
+
+var UseFileSystemAvatar FileSystemAvatar
+
+func (FileSystemAvatar) GetAvatarURL(c *client) (string, error) {
+	if userid, ok := c.userData["userid"].(string); ok {
+		files, err := os.ReadDir("avatars")
+		if err != nil {
+			return "", ErrNoAvatarURL
+		}
+		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
+			if match, _ := path.Match(userid+"*", file.Name()); match {
+				return "/avatars/" + file.Name(), nil
+			}
+		}
 	}
 	return "", ErrNoAvatarURL
 }

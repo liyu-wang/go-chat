@@ -48,7 +48,7 @@ func main() {
 	)
 
 	// create a new room
-	r := newRoom(UseGravatar)
+	r := newRoom(UseFileSystemAvatar)
 	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
 	http.Handle("/login", &templateHandler{filename: "login.html"})
 	http.HandleFunc("/auth/{action}/{provider}", loginHandler)
@@ -67,6 +67,8 @@ func main() {
 	})
 	http.Handle("/upload", MustAuth(&templateHandler{filename: "upload.html"}))
 	http.Handle("/uploader", MustAuth(http.HandlerFunc(uploaderHandler)))
+	// Serve avatar images from the "avatars" directory
+	http.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("./avatars"))))
 	// Get the room running
 	// this will start the room's main event loop in the background to handle clients
 	// joining, leaving and message forwarding, which allows the main goroutine to run the web server
