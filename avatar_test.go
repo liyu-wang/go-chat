@@ -4,21 +4,31 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/markbates/goth"
 )
 
 func TestAuthAvatar(t *testing.T) {
 	var authAvatar AuthAvatar
-	client := new(client)
-	url, err := authAvatar.GetAvatarURL(client)
+	testUser := &goth.User{
+		Name:      "Test User",
+		AvatarURL: "",
+		Provider:  "google",
+		UserID:    "12345",
+		Email:     "test.user@example.com",
+	}
+	testChatUser := &chatUser{User: testUser}
+	url, err := authAvatar.GetAvatarURL(testChatUser)
+	if url != "" {
+		t.Error("AuthAvatar.GetAvatarURL should return empty string when no auth data is present")
+	}
 	if err != ErrNoAvatarURL {
 		t.Error("AuthAvatar.GetAvatarURL should return ErrNoAvatarURL when no auth data is present")
 	}
 	// set a value
 	testUrl := "http://url-to-avatar/"
-	client.userData = map[string]any{
-		"avatar_url": testUrl,
-	}
-	url, err = authAvatar.GetAvatarURL(client)
+	testUser.AvatarURL = testUrl
+	url, err = authAvatar.GetAvatarURL(testChatUser)
 	if err != nil {
 		t.Error("AuthAvatar.GetAvatarURL should not return an error when avatar_url is present")
 	} else if url != testUrl {
@@ -28,11 +38,8 @@ func TestAuthAvatar(t *testing.T) {
 
 func TestGravatarAvatar(t *testing.T) {
 	var gravatarAvatar GravatarAvatar
-	client := new(client)
-	client.userData = map[string]any{
-		"userid": "0bc83cb571cd1c50ba6f3e8a78ef1346",
-	}
-	url, err := gravatarAvatar.GetAvatarURL(client)
+	user := &chatUser{uniqueID: "0bc83cb571cd1c50ba6f3e8a78ef1346"}
+	url, err := gravatarAvatar.GetAvatarURL(user)
 	if err != nil {
 		t.Error("GravatarAvatar.GetAvatarURL should not return an error")
 	}
@@ -55,9 +62,8 @@ func TestFileSystemAvatar(t *testing.T) {
 	defer os.Remove(filename)
 
 	var fileSystemAvatar FileSystemAvatar
-	client := new(client)
-	client.userData = map[string]any{"userid": "abc"}
-	url, err := fileSystemAvatar.GetAvatarURL(client)
+	user := &chatUser{uniqueID: "abc"}
+	url, err := fileSystemAvatar.GetAvatarURL(user)
 	if err != nil {
 		t.Error("FileSystemAvatar.GetAvatarURL should not return an error")
 	}

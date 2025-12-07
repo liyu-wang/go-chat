@@ -33,7 +33,9 @@ func (c *client) read() {
 			name = "unknown"
 		}
 		msg.Name = name
-		msg.AvatarURL, _ = c.room.avatar.GetAvatarURL(c)
+		if avatarUrl, ok := c.userData["avatar_url"].(string); ok {
+			msg.AvatarURL = avatarUrl
+		}
 		// Forward the message to the room
 		c.room.forward <- msg
 	}

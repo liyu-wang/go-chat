@@ -14,46 +14,51 @@ var ErrNoAvatarURL = errors.New("chat: Unable to get avatar URL")
 type Avatar interface {
 	// GetAvatarURL gets the avatar URL for the specified client.
 	// or returns ErrNoAvatarURL if the avatar URL is not available.
-	GetAvatarURL(c *client) (string, error)
+	GetAvatarURL(u *chatUser) (string, error)
+}
+
+type TryAvatars []Avatar
+
+func (a TryAvatars) GetAvatarURL(u *chatUser) (string, error) {
+	for _, avatar := range a {
+		if url, err := avatar.GetAvatarURL(u); err == nil {
+			return url, nil
+		}
+	}
+	return "", ErrNoAvatarURL
 }
 
 type AuthAvatar struct{}
 
 var UseAuthAvatar AuthAvatar
 
-func (AuthAvatar) GetAvatarURL(c *client) (string, error) {
-	if url, ok := c.userData["avatar_url"].(string); ok {
-		return url, nil
+func (AuthAvatar) GetAvatarURL(u *chatUser) (string, error) {
+	url := u.AvatarURL()
+	if len(url) == 0 {
+		return "", ErrNoAvatarURL
 	}
-	return "", ErrNoAvatarURL
+	return url, nil
 }
 
 type GravatarAvatar struct{}
 
 var UseGravatar GravatarAvatar
 
-func (GravatarAvatar) GetAvatarURL(c *client) (string, error) {
-	if userid, ok := c.userData["userid"].(string); ok {
-		return "//www.gravatar.com/avatar/" + userid, nil
-	}
-	return "", ErrNoAvatarURL
+func (GravatarAvatar) GetAvatarURL(u *chatUser) (string, error) {
+	return "//www.gravatar.com/avatar/" + u.UniqueID(), nil
 }
 
 type FileSystemAvatar struct{}
 
 var UseFileSystemAvatar FileSystemAvatar
 
-func (FileSystemAvatar) GetAvatarURL(c *client) (string, error) {
-	if userid, ok := c.userData["userid"].(string); ok {
-		files, err := os.ReadDir("avatars")
-		if err != nil {
-			return "", ErrNoAvatarURL
-		}
+func (FileSystemAvatar) GetAvatarURL(u *chatUser) (string, error) {
+	if files, err := os.ReadDir("avatars"); err == nil {
 		for _, file := range files {
 			if file.IsDir() {
 				continue
 			}
-			if match, _ := path.Match(userid+"*", file.Name()); match {
+			if match, _ := path.Match(u.UniqueID()+"*", file.Name()); match {
 				return "/avatars/" + file.Name(), nil
 			}
 		}

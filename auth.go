@@ -4,12 +4,35 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
+	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/stretchr/objx"
 )
+
+type ChatUser interface {
+	UniqueID() string
+	AvatarURL() string
+}
+
+type chatUser struct {
+	*goth.User
+	uniqueID string
+}
+
+func (u chatUser) UniqueID() string {
+	return u.uniqueID
+}
+
+func (u chatUser) AvatarURL() string {
+	if u.User.AvatarURL != "" {
+		return u.User.AvatarURL
+	}
+	return "" // or return a default avatar URL
+}
 
 type authHandler struct {
 	next http.Handler
@@ -60,14 +83,20 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		chatUser := &chatUser{User: &user}
+		// generate a unique ID for the user based on their email
 		m := md5.New()
 		io.WriteString(m, strings.ToLower(strings.TrimSpace(user.Email)))
-		userId := fmt.Sprintf("%x", m.Sum(nil))
+		chatUser.uniqueID = fmt.Sprintf("%x", m.Sum(nil))
+		avatarURL, err := avatars.GetAvatarURL(chatUser)
+		if err != nil {
+			log.Fatalln("Error when trying to GetAvatarURL", "-", err)
+		}
 		// create the auth cookie value
 		authCookieValue := objx.New(map[string]any{
-			"userid":     userId,
+			"userid":     chatUser.UniqueID(),
 			"name":       user.Name,
-			"avatar_url": user.AvatarURL,
+			"avatar_url": avatarURL,
 			"email":      user.Email,
 		}).MustBase64()
 		// set the auth cookie
