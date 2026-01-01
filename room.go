@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -46,14 +47,14 @@ func (r *room) run() {
 		case client := <-r.join:
 			// joining room
 			r.clients[client] = true
-			r.tracer.Trace("New client joined")
+			r.tracer.Trace(fmt.Sprintf("New client joined: %s", client.userData["name"]))
 		case client := <-r.leave:
 			// leaving room
 			delete(r.clients, client)
 			close(client.send)
-			r.tracer.Trace("Client left")
+			r.tracer.Trace(fmt.Sprintf("Client left: %s", client.userData["name"]))
 		case msg := <-r.forward:
-			r.tracer.Trace("Message received: ", msg.Message)
+			r.tracer.Trace(fmt.Sprintf("Message: %s\nReceived from: %s", msg.Message, msg.Name))
 			// forward message to all clients
 			for client := range r.clients {
 				client.send <- msg
